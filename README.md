@@ -29,7 +29,6 @@ untuk mencoba fitur full website
 | **Frontend Styling** | Tailwind CSS (CDN) | Framework utility-first untuk menyusun UI modern, bersih, dan sepenuhnya responsif di perangkat mobile maupun desktop. |
 | **Interaktivitas UI** | Vanilla JavaScript & SweetAlert2 | Menangani manipulasi DOM dinamis, manajemen state lokal browser, serta dialog pop-up yang interaktif. |
 | **Hosting Platform** | Hugging Face Spaces | Infrastruktur cloud gratis dengan SDK Static HTML untuk deployment instan yang andal. |
-
 ---
 
 ## 📂 Struktur Direktori Proyek
@@ -48,3 +47,19 @@ untuk mencoba fitur full website
 ├── go.mod                # Berkas manajemen modul dependensi proyek Go
 ├── main.go               # Entry point utama web server aplikasi Go
 └── README.md             # Dokumentasi panduan teknis proyek (Berkas ini)
+```
+🔐 Tingkat Hak Akses Pengguna (Role System)
+Aplikasi ini membaca data sesi yang tersimpan di localStorage browser untuk menentukan fungsionalitas UI:
+
+PJ KELAS (user_role: "pj"): Memiliki kontrol penuh atas visualisasi situs, modifikasi data, serta panel admin khusus ganti latar belakang.
+
+DEMO MODE (user_role: "tamu"): Ditujukan untuk tujuan pameran/showcase. Dapat memanipulasi UI secara lokal dan mendapatkan notifikasi simulasi sandbox terproteksi.
+
+MAHASISWA (user_role: "mhs"): Pengguna reguler yang dapat melihat seluruh kalender akademik, jadwal, dan mengunduh berkas materi perkuliahan tanpa hak akses modifikasi.
+
+
+📝 Kontribusi & Lisensi
+Proyek ini dikembangkan secara mandiri dan terbuka untuk seluruh mahasiswa 2KA13 yang ingin berkontribusi memperbaiki bug atau menambahkan fitur baru melalui sistem Pull Request (PR) di GitHub.
+
+Hak Cipta © 2026 Portal KA13. Didukung penuh oleh Go & Supabase.
+Creator & Maintainer: @Raihan.idn
