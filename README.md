@@ -6,7 +6,7 @@ Selamat datang di repositori resmi **Portal Kelas KA13** untuk Semester 4 / Kela
 Aplikasi ini dibangun menggunakan arsitektur modern yang menggabungkan performa tangguh backend **Go (Golang)**, fleksibilitas database cloud **Supabase**, serta antarmuka UI yang responsif dan estetik menggunakan **Tailwind CSS** dan **SweetAlert2**.
 
 ---
-LINK DEMO : 
+LINK DEMO : https://huggingface.co/spaces/RaihanID/KA13-Portal
 ## 🚀 Fitur Utama Portal
 
 * **📅 Kalender Akademik & Jadwal Kuliah:** Menampilkan agenda kegiatan perkuliahan, rentang waktu krusial, hingga jadwal mingguan yang diperbarui secara dinamis langsung dari database.
