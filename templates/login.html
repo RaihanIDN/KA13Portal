@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Portal 2KA13</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=400;500;600;700&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    </style>
+</head>
+<body class="bg-[#F5F5F0] min-h-screen flex items-center justify-center p-4">
+
+    <div class="bg-[#FAF9F6] w-full max-w-md p-8 rounded-2xl shadow-xl border border-slate-200/60 relative overflow-hidden transition-all duration-300 hover:shadow-2xl">
+        
+        <div class="absolute top-0 left-0 right-0 h-2 bg-[#5E6AA7]"></div>
+
+        <div class="text-center mb-8 mt-2">
+            <div class="mx-auto h-16 w-auto flex items-center justify-center mb-4">
+                <img src="/static/logo.png" alt="Logo 2KA13" class="h-16 w-auto object-contain" onerror="this.style.display='none'">
+            </div>
+            <h1 id="portalTitle" class="text-2xl font-bold text-[#1E2436] tracking-tight">Selamat Datang</h1>
+            <p id="portalDesc" class="text-slate-500 text-xs mt-1.5">Silakan masuk menggunakan NPM untuk mengakses fitur internal kelas</p>
+        </div>
+
+        <form id="loginForm" class="space-y-5">
+            <div>
+                <label class="block text-xs font-bold text-[#1E2436] uppercase tracking-wider mb-2">NPM Mahasiswa / Username</label>
+                <div class="relative">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400 text-sm pointer-events-none">🆔</span>
+                    <input type="text" id="npm"
+                        class="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-300 bg-white text-slate-700 text-sm focus:border-[#5E6AA7] focus:ring-2 focus:ring-[#5E6AA7]/20 outline-none transition placeholder:text-slate-400"
+                        placeholder="Contoh: 11124138 atau tamu" required>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-[#1E2436] uppercase tracking-wider mb-2">Password</label>
+                <div class="relative">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400 text-sm pointer-events-none">🔒</span>
+                    <input type="password" id="password"
+                        class="w-full pl-11 pr-20 py-3 rounded-xl border border-slate-300 bg-white text-slate-700 text-sm focus:border-[#5E6AA7] focus:ring-2 focus:ring-[#5E6AA7]/20 outline-none transition placeholder:text-slate-400"
+                        placeholder="••••••••" required>
+                    <button type="button" id="togglePassword"
+                        class="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400 hover:text-[#5E6AA7] text-xs font-bold focus:outline-none transition">
+                        LIHAT
+                    </button>
+                </div>
+            </div>
+
+            <div class="pt-2">
+                <button type="submit" id="btnSubmit"
+                    class="w-full bg-[#5E6AA7] text-white py-3.5 rounded-xl font-bold text-sm tracking-wide hover:bg-[#4e5994] active:scale-[0.98] transition shadow-lg shadow-[#5E6AA7]/20 flex justify-center items-center gap-2">
+                    <span>Masuk ke Portal</span>
+                    <span class="text-xs">➜</span>
+                </button>
+            </div>
+        </form>
+
+        <form id="forceChangePasswordForm" class="space-y-5 hidden">
+            <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 text-amber-800 text-xs mb-2">
+                ⚠️ <strong>Keamanan Diperlukan:</strong> Kamu terdeteksi masuk menggunakan password default kelas. Harap ganti password privatmu sekarang sebelum masuk ke sistem.
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-[#1E2436] uppercase tracking-wider mb-2">Password Baru Kamu</label>
+                <div class="relative">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400 text-sm pointer-events-none">🔑</span>
+                    <input type="password" id="newPassword"
+                        class="w-full pl-11 pr-20 py-3 rounded-xl border border-slate-300 bg-white text-slate-700 text-sm focus:border-[#5E6AA7] focus:ring-2 focus:ring-[#5E6AA7]/20 outline-none transition placeholder:text-slate-400"
+                        placeholder="Minimal 6 karakter" required minlength="6">
+                    <button type="button" id="toggleNewPassword"
+                        class="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400 hover:text-[#5E6AA7] text-xs font-bold focus:outline-none transition">
+                        LIHAT
+                    </button>
+                </div>
+            </div>
+
+            <div class="pt-2">
+                <button type="submit" id="btnUpdatePassword"
+                    class="w-full bg-slate-800 text-white py-3.5 rounded-xl font-bold text-sm tracking-wide hover:bg-slate-900 active:scale-[0.98] transition shadow-lg flex justify-center items-center gap-2">
+                    <span>Simpan & Masuk Dashboard</span>
+                    <span class="text-xs">✔</span>
+                </button>
+            </div>
+        </form>
+
+        <div class="text-center mt-8 pt-5 border-t border-slate-200/60">
+            <p class="text-xs text-slate-400">&copy; 2026 Portal 2KA13. Secured by Supabase Cloud.</p>
+        </div>
+    </div>
+
+    <script>
+        // ── 🔒 SINKRONISASI INJEKSI KEY DINAMIS DARI BACKEND GO ──
+        const SUPABASE_URL = 'https://quwfidtkxfjzeepvwrik.supabase.co';
+        const SUPABASE_KEY = '{{ .SupabaseKey }}';
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        const loginForm = document.getElementById('loginForm');
+        const forceChangePasswordForm = document.getElementById('forceChangePasswordForm');
+        const portalTitle = document.getElementById('portalTitle');
+        const portalDesc = document.getElementById('portalDesc');
+
+        const togglePasswordBtn = document.getElementById('togglePassword');
+        const passwordInput = document.getElementById('password');
+
+        togglePasswordBtn.addEventListener('click', () => {
+            const isHidden = passwordInput.type === 'password';
+            passwordInput.type = isHidden ? 'text' : 'password';
+            togglePasswordBtn.textContent = isHidden ? 'SEMBUNYI' : 'LIHAT';
+        });
+
+        const toggleNewPasswordBtn = document.getElementById('toggleNewPassword');
+        const newPasswordInput = document.getElementById('newPassword');
+
+        toggleNewPasswordBtn.addEventListener('click', () => {
+            const isHidden = newPasswordInput.type === 'password';
+            newPasswordInput.type = isHidden ? 'text' : 'password';
+            toggleNewPasswordBtn.textContent = isHidden ? 'SEMBUNYI' : 'LIHAT';
+        });
+
+        // ── Handler Login Utama ──
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const npmInput = document.getElementById('npm').value.trim();
+            const password = passwordInput.value;
+            const btnSubmit = document.getElementById('btnSubmit');
+
+            // ── 🔒 GATES 1: BYPASS AKUN SHOWCASE TAMU (ANTI GANTI PASSWORD) ──
+            if (npmInput.toLowerCase() === "tamu" && password.toLowerCase() === "tamu") {
+                localStorage.setItem('user_npm', '00000000');
+                localStorage.setItem('user_nama', 'Tamu Showcase');
+                localStorage.setItem('user_role', 'tamu'); // Role simulasi 
+                
+                alert('🔑 Mode Demo Aktif! Selamat mengeksplorasi fitur simulasi PJ .');
+                window.location.replace('/');
+                return;
+            }
+
+            // ── GATES 2: JALUR MAHASISWA & PJ ASLI ──
+            const emailFormat = `${npmInput}@ka13.web.id`;
+
+            btnSubmit.disabled = true;
+            btnSubmit.innerHTML = '<span>Memverifikasi Akun...</span>';
+
+            const { data, error } = await supabaseClient.auth.signInWithPassword({
+                email: emailFormat,
+                password: password,
+            });
+
+            if (error) {
+                alert('Akses Ditolak: ' + error.message);
+                btnSubmit.disabled = false;
+                btnSubmit.innerHTML = '<span>Masuk ke Portal</span><span class="text-xs">➜</span>';
+                return;
+            }
+
+            const user = data.user;
+
+            localStorage.setItem('user_npm', npmInput);
+            localStorage.setItem('user_nama', user.user_metadata?.nama_lengkap || 'Mahasiswa');
+            localStorage.setItem('user_role', npmInput === '11124138' ? 'pj' : 'mahasiswa');
+
+            if (password === 'ka13hebat') {
+                loginForm.classList.add('hidden');
+                forceChangePasswordForm.classList.remove('hidden');
+                portalTitle.innerText = 'Setel Password Baru';
+                portalDesc.innerText = 'Langkah wajib amankan akun personal mahasiswa.';
+            } else {
+                window.location.replace('/');
+            }
+        });
+
+        // ── Handler Force Update Password ──
+        forceChangePasswordForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const userRole = localStorage.getItem("user_role");
+            
+            // Pengaman Lapisan Ekstra: Blokir paksa jika ada manipulasi HTML role tamu
+            if (userRole === "tamu") {
+                alert('❌ Akses Ditolak: Akun showcase tidak diizinkan mengubah password database server !');
+                window.location.replace('/');
+                return;
+            }
+
+            const newPassword = newPasswordInput.value;
+            const btnUpdate = document.getElementById('btnUpdatePassword');
+
+            btnUpdate.disabled = true;
+            btnUpdate.innerHTML = '<span>Menyimpan Password Baru...</span>';
+
+            const { data, error } = await supabaseClient.auth.updateUser({
+                password: newPassword
+            });
+
+            if (error) {
+                alert('Gagal memperbarui password: ' + error.message);
+                btnUpdate.disabled = false;
+                btnUpdate.innerHTML = '<span>Simpan & Masuk Dashboard</span><span class="text-xs">✔</span>';
+            } else {
+                alert('Password berhasil diubah! Menuju halaman utama kelas...');
+                setTimeout(() => {
+                    window.location.replace('/');
+                }, 300);
+            }
+        });
+    </script>
+</body>
+</html>

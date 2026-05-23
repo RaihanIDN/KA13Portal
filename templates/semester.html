@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arsip Data Semester - 2KA13</title>
+
+    <script>
+        if (!localStorage.getItem("user_npm") || !localStorage.getItem("user_nama")) {
+            window.location.replace("/login");
+        }
+    </script>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            /* Efek transisi halus saat memuat kustomisasi background global */
+            transition: background-image 0.4s ease-in-out;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+        }
+
+        /* STRUKTUR UTAMA DIVIDER BULAN SABIT */
+        .moon-divider {
+            position: relative;
+            width: 1px;
+            height: 20px;
+            background-color: #cbd5e1;
+        }
+        .moon-divider::after {
+            content: '';
+            position: absolute;
+            top: 0; 
+            left: -6px;
+            width: 8px; 
+            height: 100%;
+            border-radius: 50% 0 0 50%;
+            transition: background-color 0.15s ease-in-out;
+        }
+
+        /* 1. WARNA UNTUK TOMBOL PASIF (ABU-ABU) */
+        .moon-btn-passive {
+            background-color: #E2E8F0;
+            transition: background-color 0.15s ease-in-out;
+        }
+        .moon-btn-passive .moon-divider::after {
+            background-color: #E2E8F0; 
+        }
+        .moon-btn-passive:hover .moon-divider::after {
+            background-color: #cbd5e1; 
+        }
+
+        /* 2. WARNA UNTUK TOMBOL AKTIF (PUTIH) */
+        .moon-btn-active {
+            background-color: #ffffff;
+        }
+        .moon-btn-active .moon-divider::after {
+            background-color: #ffffff; 
+        }
+    </style>
+</head>
+<body class="bg-[#F8FAFC] min-h-screen flex flex-col">
+
+    <nav class="bg-[#5E6AA7]/90 backdrop-blur-sm px-10 py-4 flex items-center justify-between shadow-md z-10">
+        <a href="/" class="flex items-center">
+            <img src="/static/logo.png" alt="Logo Kelas" class="h-14 w-auto object-contain transition hover:scale-105">
+        </a>
+
+        <div class="flex items-center gap-6">
+            <a href="/download" class="moon-btn-passive text-[#1E2436] px-5 py-2 rounded-full font-medium text-xs tracking-wider flex items-center gap-3 shadow-sm hover:bg-slate-300 transition">
+                DOWNLOAD <div class="moon-divider"></div> <span class="text-[10px]">▼</span>
+            </a>
+            <a href="/jadwal" class="moon-btn-passive text-[#1E2436] px-5 py-2 rounded-full font-medium text-xs tracking-wider flex items-center gap-3 shadow-sm hover:bg-slate-300 transition">
+                JADWAL <div class="moon-divider"></div> <span class="text-[10px]">▼</span>
+            </a>
+            <a href="/semester" class="moon-btn-active text-[#1E2436] px-5 py-2 rounded-full font-bold text-xs tracking-wider flex items-center gap-3 shadow-sm transition">
+                SEMESTER <div class="moon-divider"></div> <span class="text-[10px]">▼</span>
+            </a>
+        </div>
+
+        <div id="authNavArea">
+            <a href="/login" class="bg-[#E2E8F0] text-[#1E2436] px-6 py-2 rounded-full font-semibold text-xs tracking-wide shadow-sm hover:bg-slate-300 transition block text-center">Login</a>
+        </div>
+    </nav>
+
+    <main class="flex-grow flex flex-col items-center p-6 md:p-10 gap-4 w-full justify-center z-10">
+        
+        <div id="tamuSemesterBanner" class="bg-amber-50/95 backdrop-blur-sm border border-amber-200 text-amber-800 rounded-xl px-6 py-3 max-w-xl w-full text-xs font-semibold hidden shadow-sm text-center md:text-left">
+            🛡️ Mode Showcase Active: Anda masuk sebagai Tamu.
+        </div>
+
+        <div class="bg-white/95 backdrop-blur-sm p-8 rounded-2xl shadow-xl max-w-xl w-full text-center border border-slate-200 relative">
+            <button id="addSemesterBtn" onclick="tambahSemester()" class="absolute top-6 right-6 bg-[#5E6AA7] hover:bg-[#4a548c] text-white w-10 h-10 rounded-full flex items-center justify-center font-bold shadow-md hidden transition active:scale-95 text-lg">
+                +
+            </button>
+
+            <h1 class="text-3xl font-bold text-[#1E2436] mb-4">Arsip Data Semester</h1>
+            <p class="text-slate-500 text-sm mb-6">Pilih semester aktif untuk menyaring riwayat kalender akademik dan nilai.</p>
+            
+            <div id="semesterContainer" class="flex flex-col gap-3"></div>
+            
+            <a href="/" class="mt-8 inline-block text-sm font-semibold text-[#5E6AA7] hover:underline">← Kembali ke Beranda</a>
+        </div>
+    </main>
+
+    <footer class="bg-white/90 backdrop-blur-sm text-center py-4 text-xs text-slate-400 border-t border-slate-100 z-10">
+        &copy; 2026 Portal Kelas. Powered by Go & Supabase. Creator By @Raihan.idn
+    </footer>
+
+    <script>
+        const defaultSemester = [
+            { nama: "Arsip Materi & Tugas - Semester 3", link: "https://drive.google.com/drive/folders/1J1dFsig9Zzkpo_CgxzrvMOCpdHU3modh?usp=drive_link" },
+            { nama: "Praktikum Sistem Basis Data & Pemrograman C (Semester 4) - Aktif", link: "https://drive.google.com/drive/folders/1On3cQqyTMnSyiZwfHvcixn140o4dnz7F?usp=drive_link" }
+        ];
+
+        if (!localStorage.getItem("data_semester")) {
+            localStorage.setItem("data_semester", JSON.stringify(defaultSemester));
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            // FITUR GLOBAL: Mendeteksi dan menerapkan data base64 background kustom dari index.html
+            const savedBg = localStorage.getItem("background_ka13");
+            if (savedBg) {
+                document.body.style.backgroundImage = `url('${savedBg}')`;
+                document.body.style.backgroundSize = 'cover';
+                document.body.style.backgroundPosition = 'center';
+                document.body.style.backgroundRepeat = 'no-repeat';
+                document.body.style.backgroundAttachment = 'fixed';
+            }
+
+            const userNpm = localStorage.getItem("user_npm");
+            const userNama = localStorage.getItem("user_nama");
+            const userRole = localStorage.getItem("user_role");
+            const authNavArea = document.getElementById("authNavArea");
+            const addSemesterBtn = document.getElementById("addSemesterBtn");
+
+            if (userRole === "pj" || userRole === "tamu") {
+                if (addSemesterBtn) addSemesterBtn.classList.remove("hidden");
+            }
+
+            if (userRole === "tamu") {
+                const banner = document.getElementById("tamuSemesterBanner");
+                if (banner) banner.classList.remove("hidden");
+            }
+
+            if (userNama && authNavArea) {
+                if (userRole === "pj") {
+                    authNavArea.innerHTML = `
+                        <div class="flex items-center gap-3 bg-slate-800 text-white pl-4 pr-2 py-1.5 rounded-full shadow-sm border border-slate-700">
+                            <span class="text-xs font-bold tracking-wide">${userNama}</span>
+                            <span class="bg-amber-400 text-slate-950 font-extrabold text-[9px] px-2 py-1 rounded-full uppercase tracking-wider">PJ KELAS</span>
+                            <button onclick="logout()" class="text-slate-400 hover:text-red-400 text-xs font-bold ml-2 transition">✕</button>
+                        </div>
+                    `;
+                } else if (userRole === "tamu") {
+                    authNavArea.innerHTML = `
+                        <div class="flex items-center gap-3 bg-[#1E2436] text-white pl-4 pr-2 py-1.5 rounded-full shadow-sm border border-slate-700">
+                            <span class="text-xs font-bold tracking-wide">Tamu Showcase</span>
+                            <span class="bg-indigo-400 text-white font-extrabold text-[9px] px-2 py-1 rounded-full uppercase tracking-wider">DEMO MODE</span>
+                            <button onclick="logout()" class="text-slate-400 hover:text-red-400 text-xs font-bold ml-2 transition">✕</button>
+                        </div>
+                    `;
+                } else {
+                    authNavArea.innerHTML = `
+                        <div class="flex items-center gap-3 bg-white border border-slate-200 text-[#1E2436] pl-4 pr-2 py-1.5 rounded-full shadow-sm">
+                            <span class="text-xs font-semibold">${userNama}</span>
+                            <span class="bg-slate-100 text-slate-500 font-bold text-[9px] px-2 py-1 rounded-full uppercase">MHS</span>
+                            <button onclick="logout()" class="text-slate-400 hover:text-red-500 text-xs font-bold ml-2 transition">✕</button>
+                        </div>
+                    `;
+                }
+            }
+            renderSemester();
+        });
+
+        function renderSemester() {
+            const container = document.getElementById("semesterContainer");
+            const userRole = localStorage.getItem("user_role");
+            const data = JSON.parse(localStorage.getItem("data_semester")) || [];
+            container.innerHTML = "";
+
+            data.forEach((item, index) => {
+                container.innerHTML += `
+                    <div class="flex items-center gap-2 w-full">
+                        <a href="${item.link}" target="_blank" class="flex-grow py-3.5 bg-white/95 hover:bg-[#5E6AA7] text-slate-700 hover:text-white border border-slate-200 rounded-xl font-bold transition-all duration-200 block text-center hover:shadow-md">
+                            ${item.nama}
+                        </a>
+                        ${userRole === "pj" || userRole === "tamu" ? `
+                            <button onclick="editSemester(${index})" class="bg-amber-500 hover:bg-amber-600 text-white px-3 py-3.5 rounded-xl font-bold text-xs shadow-sm transition active:scale-95" title="Ubah data">📝</button>
+                            <button onclick="hapusSemester(${index})" class="bg-red-500 hover:bg-red-600 text-white px-3 py-3.5 rounded-xl font-bold text-xs shadow-sm transition active:scale-95" title="Hapus data">✕</button>
+                        ` : ""}
+                    </div>
+                `;
+            });
+        }
+
+        function tambahSemester() {
+            const nama = prompt("Masukkan Nama/Judul Semester Baru:");
+            const link = prompt("Masukkan Link URL Google Drive Kelas:");
+            const userRole = localStorage.getItem("user_role");
+            
+            if (nama && link) {
+                const data = JSON.parse(localStorage.getItem("data_semester"));
+                data.push({ nama, link });
+                localStorage.setItem("data_semester", JSON.stringify(data));
+                renderSemester();
+                
+                if (userRole === "tamu") {
+                    alert("🔒 Mode Showcase: Sukses mensimulasikan penambahan data semester di UI lokal.");
+                }
+            }
+        }
+
+        function editSemester(index) {
+            const data = JSON.parse(localStorage.getItem("data_semester"));
+            const namaBaru = prompt("Perbarui Nama/Judul Semester:", data[index].nama);
+            const linkBaru = prompt("Perbarui Tautan Google Drive:", data[index].link);
+            const userRole = localStorage.getItem("user_role");
+            
+            if (namaBaru && linkBaru) {
+                data[index].nama = namaBaru;
+                data[index].link = linkBaru;
+                localStorage.setItem("data_semester", JSON.stringify(data));
+                renderSemester();
+                
+                if (userRole === "tamu") {
+                    alert("🔒 Mode Showcase: Sukses mensimulasikan pembaruan data semester di UI lokal.");
+                }
+            }
+        }
+
+        function hapusSemester(index) {
+            const userRole = localStorage.getItem("user_role");
+            if (confirm("Apakah kamu yakin ingin menghapus arsip tautan semester ini?")) {
+                const data = JSON.parse(localStorage.getItem("data_semester"));
+                data.splice(index, 1);
+                localStorage.setItem("data_semester", JSON.stringify(data));
+                renderSemester();
+                
+                if (userRole === "tamu") {
+                    alert("🔒 Mode Showcase: Berhasil mensimulasikan penghapusan data semester di UI lokal.");
+                }
+            }
+        }
+
+        function logout() {
+            localStorage.clear();
+            alert("Kamu telah keluar dari Portal Kelas.");
+            window.location.href = "/";
+        }
+    </script>
+</body>
+</html>

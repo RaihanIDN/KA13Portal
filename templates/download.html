@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Download Center - 2KA13</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        if (!localStorage.getItem("user_npm") || !localStorage.getItem("user_nama")) {
+            window.location.replace("/login");
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+        
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            /* Efek transisi halus saat memuat kustomisasi background global */
+            transition: background-image 0.4s ease-in-out;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+        }
+        
+        .moon-divider {
+            position: relative;
+            width: 1px;
+            height: 20px;
+            background-color: #cbd5e1;
+        }
+        .moon-divider::after {
+            content: '';
+            position: absolute;
+            top: 0; 
+            left: -6px;
+            width: 8px; 
+            height: 100%;
+            border-radius: 50% 0 0 50%;
+            transition: background-color 0.15s ease-in-out;
+        }
+        .moon-btn-passive {
+            background-color: #E2E8F0;
+            transition: background-color 0.15s ease-in-out;
+        }
+        .moon-btn-passive .moon-divider::after { background-color: #E2E8F0; }
+        .moon-btn-passive:hover .moon-divider::after { background-color: #cbd5e1; }
+        .moon-btn-active { background-color: #ffffff; }
+        .moon-btn-active .moon-divider::after { background-color: #ffffff; }
+    </style>
+</head>
+<body class="bg-[#F8FAFC] min-h-screen flex flex-col">
+
+    <nav class="bg-[#5E6AA7]/90 backdrop-blur-sm px-10 py-4 flex items-center justify-between shadow-md z-10">
+        <a href="/" class="flex items-center">
+            <img src="/static/logo.png" alt="Logo 2KA13" class="h-14 w-auto object-contain transition hover:scale-105">
+        </a>
+        <div class="flex items-center gap-6">
+            <a href="/download" class="moon-btn-active text-[#1E2436] px-5 py-2 rounded-full font-bold text-xs tracking-wider flex items-center gap-3 shadow-sm transition">
+                DOWNLOAD <div class="moon-divider"></div> <span class="text-[10px]">▼</span>
+            </a>
+            <a href="/jadwal" class="moon-btn-passive text-[#1E2436] px-5 py-2 rounded-full font-medium text-xs tracking-wider flex items-center gap-3 shadow-sm hover:bg-slate-300 transition">
+                JADWAL <div class="moon-divider"></div> <span class="text-[10px]">▼</span>
+            </a>
+            <a href="/semester" class="moon-btn-passive text-[#1E2436] px-5 py-2 rounded-full font-medium text-xs tracking-wider flex items-center gap-3 shadow-sm hover:bg-slate-300 transition">
+                SEMESTER <div class="moon-divider"></div> <span class="text-[10px]">▼</span>
+            </a>
+        </div>
+        <div id="authNavArea">
+            <a href="/login" class="bg-[#E2E8F0] text-[#1E2436] px-6 py-2 rounded-full font-semibold text-xs tracking-wide shadow-sm hover:bg-slate-300 transition block text-center">Login</a>
+        </div>
+    </nav>
+
+    <main class="flex-grow flex flex-col items-center p-6 md:p-10 gap-4 justify-center z-10">
+        
+        <div id="tamuDownloadBanner" class="bg-amber-50/95 backdrop-blur-sm border border-amber-200 text-amber-800 rounded-xl px-6 py-3 max-w-3xl w-full text-xs font-semibold hidden shadow-sm text-center md:text-left">
+            🛡️ Mode Showcase Aktif: Anda masuk sebagai Tamu.
+        </div>
+
+        <div class="bg-white/95 backdrop-blur-sm p-8 rounded-2xl shadow-xl max-w-3xl w-full text-center border border-slate-200 relative">
+            
+            <button id="addDownloadBtn" onclick="openDownloadModal()" class="absolute top-6 right-6 bg-[#1E2436] hover:bg-slate-800 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold shadow-md hidden transition active:scale-95 text-lg">
+                +
+            </button>
+
+            <h1 class="text-2xl font-bold text-[#1E2436] mb-1">Pusat Unduhan Berkas</h1>
+            <p class="text-xs text-slate-400 mb-6 font-medium">Unduh modul praktikum, materi V-Class, dan tugas kelas di sini.</p>
+            
+            <div id="downloadContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4 text-left"></div>
+            
+            <a href="/" class="mt-8 inline-block text-sm font-semibold text-[#5E6AA7] hover:underline">← Kembali ke Beranda</a>
+        </div>
+    </main>
+
+    <footer class="bg-white/90 backdrop-blur-sm text-center py-4 text-xs text-slate-400 border-t border-slate-100 z-10">
+        &copy; 2026 Portal KA13. Powered by Go & Supabase. Creator By @Raihan.idn
+    </footer>
+
+    <div id="downloadModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-200">
+            <h3 id="modalTitle" class="text-lg font-bold text-[#1E2436] mb-4 flex items-center gap-2">📁 Tambah Berkas Baru</h3>
+            <form id="downloadForm" onsubmit="simpanBerkas(event)" class="space-y-4 text-left">
+                <input type="hidden" id="editIndex" value="">
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Judul Berkas / Materi</label>
+                    <input type="text" id="dBerkas" placeholder="e.g. Modul Struktur Data" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#5E6AA7]">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Informasi Ekstensi & Ukuran</label>
+                    <input type="text" id="dInfo" placeholder="e.g. Format: PDF (5.4 MB)" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#5E6AA7]">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Tautan Unduhan (URL Google Drive)</label>
+                    <input type="url" id="dUrl" placeholder="https://drive.google.com/..." required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#5E6AA7]">
+                </div>
+                <div class="flex items-center gap-3 pt-2">
+                    <button type="button" onclick="closeDownloadModal()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold py-2.5 rounded-xl text-sm transition">Batal</button>
+                    <button type="submit" class="flex-1 bg-[#1E2436] hover:bg-slate-800 text-white font-semibold py-2.5 rounded-xl text-sm shadow-md transition">Simpan Berkas</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const defaultDownloads = [
+            { judul: "Modul Sistem Basis Data", info: "Format: PDF (5.4 MB)", url: "#" },
+            { judul: "Materi Kuliah Pemrograman C", info: "Format: ZIP (12.1 MB)", url: "#" }
+        ];
+
+        let localTamuDownloadCache = [];
+
+        document.addEventListener("DOMContentLoaded", () => {
+            // FITUR GLOBAL: Mendeteksi dan menerapkan data base64 background kustom dari index.html
+            const savedBg = localStorage.getItem("background_ka13");
+            if (savedBg) {
+                document.body.style.backgroundImage = `url('${savedBg}')`;
+                document.body.style.backgroundSize = 'cover';
+                document.body.style.backgroundPosition = 'center';
+                document.body.style.backgroundRepeat = 'no-repeat';
+                document.body.style.backgroundAttachment = 'fixed';
+            }
+
+            const userNama = localStorage.getItem("user_nama");
+            const userRole = localStorage.getItem("user_role");
+            const authNavArea = document.getElementById("authNavArea");
+            const addDownloadBtn = document.getElementById("addDownloadBtn");
+
+            if (userRole === "pj" || userRole === "tamu") {
+                if (addDownloadBtn) addDownloadBtn.classList.remove("hidden");
+            }
+
+            if (userRole === "tamu") {
+                document.getElementById("tamuDownloadBanner").classList.remove("hidden");
+                localTamuDownloadCache = JSON.parse(localStorage.getItem("data_download")) || defaultDownloads;
+            } else {
+                if (!localStorage.getItem("data_download")) {
+                    localStorage.setItem("data_download", JSON.stringify(defaultDownloads));
+                }
+            }
+
+            if (userNama && authNavArea) {
+                if (userRole === "pj") {
+                    authNavArea.innerHTML = `
+                        <div class="flex items-center gap-3 bg-slate-800 text-white pl-4 pr-2 py-1.5 rounded-full shadow-sm border border-slate-700">
+                            <span class="text-xs font-bold tracking-wide">${userNama}</span>
+                            <span class="bg-amber-400 text-slate-950 font-extrabold text-[9px] px-2 py-1 rounded-full uppercase tracking-wider">PJ KELAS</span>
+                            <button onclick="logout()" class="text-slate-400 hover:text-red-400 text-xs font-bold ml-2 transition">✕</button>
+                        </div>`;
+                } else if (userRole === "tamu") {
+                    authNavArea.innerHTML = `
+                        <div class="flex items-center gap-3 bg-[#1E2436] text-white pl-4 pr-2 py-1.5 rounded-full shadow-sm border border-slate-700">
+                            <span class="text-xs font-bold tracking-wide">Tamu Showcase</span>
+                            <span class="bg-indigo-400 text-white font-extrabold text-[9px] px-2 py-1 rounded-full uppercase tracking-wider">DEMO MODE</span>
+                            <button onclick="logout()" class="text-slate-400 hover:text-red-400 text-xs font-bold ml-2 transition">✕</button>
+                        </div>`;
+                } else {
+                    authNavArea.innerHTML = `
+                        <div class="flex items-center gap-3 bg-white border border-slate-200 text-[#1E2436] pl-4 pr-2 py-1.5 rounded-full shadow-sm">
+                            <span class="text-xs font-semibold">${userNama}</span>
+                            <span class="bg-slate-100 text-slate-500 font-bold text-[9px] px-2 py-1 rounded-full uppercase">MHS</span>
+                            <button onclick="logout()" class="text-slate-400 hover:text-red-500 text-xs font-bold ml-2 transition">✕</button>
+                        </div>`;
+                }
+            }
+
+            renderDownloads();
+        });
+
+        function renderDownloads() {
+            const container = document.getElementById("downloadContainer");
+            const userRole = localStorage.getItem("user_role");
+            
+            let data = [];
+            if (userRole === "tamu") {
+                data = localTamuDownloadCache;
+            } else {
+                data = JSON.parse(localStorage.getItem("data_download")) || [];
+            }
+            
+            container.innerHTML = "";
+
+            if (data.length === 0) {
+                container.innerHTML = `<p class="col-span-1 md:col-span-2 text-center text-slate-400 text-xs py-4">Belum ada berkas terdaftar.</p>`;
+                return;
+            }
+
+            data.forEach((item, index) => {
+                container.innerHTML += `
+                    <div class="p-4 bg-[#FAF9F6]/95 rounded-xl border border-slate-200 flex flex-col justify-between hover:shadow-sm transition">
+                        <div>
+                            <h3 class="font-bold text-[#1E2436] text-sm">${item.judul}</h3>
+                            <p class="text-[11px] text-slate-400 mt-0.5">${item.info}</p>
+                        </div>
+                        <div class="mt-4 flex items-center gap-2">
+                            <a href="${item.url}" target="_blank" class="text-xs bg-[#5E6AA7] text-white px-4 py-2 rounded-lg font-semibold hover:bg-[#4a548c] text-center flex-grow transition">Download</a>
+                            ${userRole === "pj" || userRole === "tamu" ? `
+                                <button onclick="bukaEditBerkas(${index})" class="text-xs bg-amber-500 text-white w-7 h-7 rounded-lg flex items-center justify-center font-bold hover:bg-amber-600 transition active:scale-95">📝</button>
+                                <button onclick="hapusBerkas(${index})" class="text-xs bg-red-500 text-white w-7 h-7 rounded-lg flex items-center justify-center font-bold hover:bg-red-600 transition active:scale-95">✕</button>
+                            ` : ""}
+                        </div>
+                    </div>`;
+            });
+        }
+
+        function openDownloadModal() {
+            document.getElementById('modalTitle').innerText = "📁 Tambah Berkas Baru";
+            document.getElementById('editIndex').value = "";
+            document.getElementById('downloadForm').reset();
+            const modal = document.getElementById('downloadModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function bukaEditBerkas(index) {
+            const userRole = localStorage.getItem("user_role");
+            let data = userRole === "tamu" ? localTamuDownloadCache : JSON.parse(localStorage.getItem("data_download"));
+            
+            document.getElementById('modalTitle').innerText = "📝 Perbarui Berkas Kelas";
+            document.getElementById('editIndex').value = index;
+            document.getElementById('dBerkas').value = data[index].judul;
+            document.getElementById('dInfo').value = data[index].info;
+            document.getElementById('dUrl').value = data[index].url;
+            
+            const modal = document.getElementById('downloadModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeDownloadModal() {
+            const modal = document.getElementById('downloadModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            document.getElementById('downloadForm').reset();
+        }
+
+        function simpanBerkas(e) {
+            e.preventDefault();
+            const userRole = localStorage.getItem("user_role");
+            const index = document.getElementById('editIndex').value;
+            const judul = document.getElementById('dBerkas').value.trim();
+            const info = document.getElementById('dInfo').value.trim();
+            const url = document.getElementById('dUrl').value.trim();
+
+            if (userRole === "tamu") {
+                if (index === "") {
+                    localTamuDownloadCache.push({ judul, info, url });
+                } else {
+                    localTamuDownloadCache[index] = { judul, info, url };
+                }
+                closeDownloadModal();
+                renderDownloads();
+                alert("🔒 Mode Showcase: Sukses mensimulasikan manipulasi berkas unduhan di UI lokal (Data asli web aman).");
+                return;
+            }
+
+            const data = JSON.parse(localStorage.getItem("data_download"));
+            if (index === "") {
+                data.push({ judul, info, url });
+            } else {
+                data[index] = { judul, info, url };
+            }
+            localStorage.setItem("data_download", JSON.stringify(data));
+            closeDownloadModal();
+            renderDownloads();
+        }
+
+        function hapusBerkas(index) {
+            const userRole = localStorage.getItem("user_role");
+            if (confirm("Apakah kamu yakin ingin menghapus berkas unduhan ini?")) {
+                if (userRole === "tamu") {
+                    localTamuDownloadCache.splice(index, 1);
+                    renderDownloads();
+                    alert("🔒 Mode Showcase: Sukses mensimulasikan penghapusan berkas di UI lokal.");
+                    return;
+                }
+                
+                const data = JSON.parse(localStorage.getItem("data_download"));
+                data.splice(index, 1);
+                localStorage.setItem("data_download", JSON.stringify(data));
+                renderDownloads();
+            }
+        }
+
+        function logout() {
+            localStorage.clear();
+            alert("Kamu telah keluar dari Portal Kelas.");
+            window.location.href = "/";
+        }
+    </script>
+</body>
+</html>

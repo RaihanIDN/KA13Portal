@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ubah Background Halaman - 2KA13</title>
+    
+    <script>
+        if (!localStorage.getItem("user_npm") || !localStorage.getItem("user_nama")) {
+            window.location.replace("/login");
+        }
+    </script>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap');
+        
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            /* Transisi halus saat background berubah */
+            transition: background-image 0.5s ease-in-out;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+        }
+
+        /* Overlay agar teks tetap terbaca jika BG terlalu terang */
+        .bg-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(248, 250, 252, 0.85); /* Warna asli BG dengan opasitas */
+            z-index: -1;
+        }
+    </style>
+</head>
+<body class="bg-[#F8FAFC] min-h-screen flex flex-col relative">
+    
+    <div class="bg-overlay"></div>
+
+    <main class="flex-grow flex flex-col items-center justify-center p-6 md:p-10">
+        
+        <div class="bg-white/90 backdrop-blur-sm p-8 rounded-2xl shadow-xl max-w-xl w-full text-center border border-slate-200">
+            
+            <h1 class="text-3xl font-bold text-[#1E2436] mb-2">Panel Kustomisasi Visual</h1>
+            <p class="text-slate-500 text-sm mb-8">Fitur khusus Penanggung Jawab (PJ) untuk mengubah gambar latar belakang portal kelas.</p>
+            
+            <div id="pjEditorArea" class="hidden space-y-6 border-t border-slate-100 pt-6">
+                <div class="text-left">
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-2 tracking-wide">Unggah Gambar Background Baru (PNG/JPG)</label>
+                    <input type="file" id="bgInput" accept="image/png, image/jpeg" 
+                        class="w-full text-sm text-slate-500 file:mr-4 file:py-2.5 file:px-5 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-[#5E6AA7] file:text-white hover:file:bg-[#4a548c] file:cursor-pointer cursor-pointer bg-slate-50 border border-slate-200 rounded-xl">
+                </div>
+
+                <div class="flex gap-3">
+                    <button onclick="terapkanBackground()" class="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 rounded-xl text-sm shadow-md transition active:scale-95">
+                        Terapkan Gambar
+                    </button>
+                    <button onclick="resetBackground()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold py-3 rounded-xl text-sm transition">
+                        Reset Default
+                    </button>
+                </div>
+            </div>
+
+            <div id="studentViewArea" class="hidden py-10 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+                <span class="text-5xl">🔒</span>
+                <p class="text-sm mt-4 font-medium text-slate-500 px-6">Maaf, akses ditolak. Hanya akun dengan level <span class="font-bold text-amber-600">PJ Kelas</span> yang dapat mengubah visual background portal.</p>
+            </div>
+            
+            <a href="/" class="mt-10 inline-block text-sm font-semibold text-[#5E6AA7] hover:underline">← Kembali ke Beranda</a>
+        </div>
+    </main>
+
+    <footer class="text-center py-4 text-xs text-slate-400 bg-white/80 backdrop-blur-sm border-t border-slate-100">
+        &copy; 2026 Portal KA13. Fitur Visual.
+    </footer>
+
+    <script>
+        // Fungsi untuk memuat background yang tersimpan saat halaman dibuka
+        function loadSavedBackground() {
+            const savedBg = localStorage.getItem("pilihan_bg_ka13");
+            if (savedBg) {
+                document.body.style.backgroundImage = `url('${savedBg}')`;
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            // 1. Muat BG yang tersimpan (berlaku untuk semua role)
+            loadSavedBackground();
+
+            const userRole = localStorage.getItem("user_role");
+            const pjArea = document.getElementById("pjEditorArea");
+            const studentArea = document.getElementById("studentViewArea");
+
+            // 2. Logika Pemblokiran Akses berdasarkan Role
+            if (userRole === "pj") {
+                // Jika PJ, tampilkan tombol upload
+                if (pjArea) pjArea.classList.remove("hidden");
+            } else {
+                // Jika mahasiswa/tamu, tampilkan pesan 'Akses Ditolak'
+                if (studentArea) studentArea.classList.remove("hidden");
+            }
+        });
+
+        // Fungsi PJ: Membaca file dan menerapkannya
+        function terapkanBackground() {
+            const input = document.getElementById('bgInput');
+            
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+
+                reader.onload = function(e) {
+                    const base64Image = e.target.result;
+                    
+                    // A. Terapkan langsung ke body saat ini
+                    document.body.style.backgroundImage = `url('${base64Image}')`;
+                    
+                    // B. Simpan permanen di LocalStorage agar tidak hilang saat refresh
+                    try {
+                        localStorage.setItem("pilihan_bg_ka13", base64Image);
+                        alert("Sip ! Background berhasil diubah untuk browser ini.");
+                    } catch (error) {
+                        // LocalStorage punya batas (sekitar 5MB), jika gambar terlalu besar akan error
+                        console.error("Gagal menyimpan ke LocalStorage:", error);
+                        alert("Waduh, gagal menyimpan permanen. Gambarnya kegedean (max ~4MB).");
+                    }
+                };
+
+                // Membaca file gambar sebagai URL Data Base64
+                reader.readAsDataURL(input.files[0]);
+            } else {
+                alert("Pilih file gambarnya dulu !");
+            }
+        }
+
+        // Fungsi PJ: Menghapus BG kustom
+        function resetBackground() {
+            if (confirm("Yakin mau hapus background kustom dan balik ke default ?")) {
+                localStorage.removeItem("pilihan_bg_ka13");
+                document.body.style.backgroundImage = "none";
+                document.getElementById('bgInput').value = ""; // Reset input file
+                alert("Background telah direset.");
+            }
+        }
+    </script>
+</body>
+</html>
